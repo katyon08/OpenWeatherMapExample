@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="days_by_city">16 day / daily forecast</string>
+    <string name="hours_by_city">5 day / 3 hour forecast</string>
+    <string name="current_by_city">Current</string>
+    <string name="city_name">City name</string>
+    <string name="go">GO!</string>
+</resources>
