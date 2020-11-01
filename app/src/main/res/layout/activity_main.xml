@@ -19,7 +19,6 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:hint="@string/city_name"
-
             android:padding="10dp" />
 
         <Button
@@ -39,7 +38,7 @@
         android:layout_height="wrap_content"
         android:checkedButton="@id/current"
         android:padding="10dp"
-        app:layout_constraintBottom_toTopOf="@id/text">
+        app:layout_constraintBottom_toTopOf="@id/text_city">
 
         <RadioButton
             android:id="@+id/current"
@@ -61,14 +60,95 @@
     </RadioGroup>
 
     <TextView
-        android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="30dp"
+        android:padding="10dp"
+        android:text="City: "
+        app:layout_constraintTop_toTopOf="@id/text_city"
+        app:layout_constraintRight_toLeftOf="@id/text_city"/>
+
+    <TextView
+        android:id="@+id/text_city"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
         android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radios"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Country: "
+        app:layout_constraintTop_toTopOf="@id/text_country"
+        app:layout_constraintRight_toLeftOf="@id/text_country"/>
+
+    <TextView
+        android:id="@+id/text_country"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Hello World!"
+        app:layout_constraintTop_toBottomOf="@+id/text_city"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Wind Speed: "
+        app:layout_constraintTop_toTopOf="@id/text_wind"
+        app:layout_constraintRight_toLeftOf="@id/text_wind"/>
+
+    <TextView
+        android:id="@+id/text_wind"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Hello World!"
+        app:layout_constraintTop_toBottomOf="@+id/text_country"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Temperature: "
+        app:layout_constraintTop_toTopOf="@id/text_temp"
+        app:layout_constraintRight_toLeftOf="@id/text_temp"/>
+
+    <TextView
+        android:id="@+id/text_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Hello World!"
+        app:layout_constraintTop_toBottomOf="@+id/text_wind"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Description: "
+        app:layout_constraintTop_toTopOf="@id/text_description"
+        app:layout_constraintRight_toLeftOf="@id/text_description"/>
+
+    <TextView
+        android:id="@+id/text_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Hello World!"
+        app:layout_constraintTop_toBottomOf="@+id/text_temp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

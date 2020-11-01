@@ -2,11 +2,18 @@ package com.android.lessons.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.lessons.myapplication.helper.DBForecastHelper;
+import com.android.lessons.myapplication.models.Forecast;
+import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeatherCallback;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.ThreeHourForecastCallback;
@@ -14,7 +21,8 @@ import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
 import com.kwabenaberko.openweathermaplib.models.threehourforecast.ThreeHourForecast;
 
 public class MainActivity extends AppCompatActivity {
-    OpenWeatherMapHelper weatherHelper;
+    private OpenWeatherMapHelper weatherHelper;
+    private DBForecastHelper dbForecastHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,24 +30,35 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         prepareRadioListeners();
         weatherHelper = new OpenWeatherMapHelper(getString(R.string.OPEN_WEATHER_MAP_API_KEY));
-        UpdateWeather();
+        weatherHelper.setUnits(Units.METRIC);
+        dbForecastHelper =
+                new DBForecastHelper(this);
+        Forecast f = dbForecastHelper.getLastForecast();
+        if (f != null) {
+            setWeatherOnUi(f);
+        }
+
     }
 
     private void prepareRadioListeners() {
-        ((RadioGroup) findViewById(R.id.radios)).setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        RadioGroup.OnCheckedChangeListener listener = new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                UpdateWeather(GetSelectedWeatherType());
+                WeatherType selectedType = GetSelectedWeatherType();
+                UpdateWeather(selectedType);
             }
-        });
+        };
+
+        ((RadioGroup) findViewById(R.id.radios))
+                .setOnCheckedChangeListener(listener);
     }
 
     private void UpdateWeather() {
-        GetSelectedWeatherType();
+        WeatherType type = GetSelectedWeatherType();
+        UpdateWeather(type);
     }
 
-    private WeatherType GetSelectedWeatherType()
-    {
+    private WeatherType GetSelectedWeatherType() {
         int selectedId = ((RadioGroup) findViewById(R.id.radios)).getCheckedRadioButtonId();
         return GetSelectedWeatherType(selectedId);
     }
@@ -67,7 +86,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void UpdateWeather(WeatherType selected) {
 
-        String cityName = ((TextView)findViewById(R.id.cityName)).getText().toString();
+        String cityName = ((TextView) findViewById(R.id.cityName)).getText().toString();
+
+        if (cityName.equals("")){
+            Toast.makeText(getApplicationContext(), "No city provided", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         switch (selected) {
             case Current:
@@ -85,42 +109,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getDaysWeather(String city) {
-        setWeatherOnUi("16 day / daily forecast is not implemented yet");
+        setWeatherOnUi(new Forecast("Not Implemented Yet", "", "", "", ""));
     }
 
     private void getHoursWeather(String city) {
         weatherHelper.getThreeHourForecastByCityName(city, new ThreeHourForecastCallback() {
-        @Override
-        public void onSuccess(ThreeHourForecast threeHourForecast) {
-            String weatherText = "City/Country: "+ threeHourForecast.getCity().getName() + "/" + threeHourForecast.getCity().getCountry() +"\n"
-                    +"Forecast Array Count: " + threeHourForecast.getCnt() +"\n"
-                    //For this example, we are logging details of only the first forecast object in the forecasts array
-                    +"First Forecast Date Timestamp: " + threeHourForecast.getList().get(0).getDt() +"\n"
-                    +"First Forecast Weather Description: " + threeHourForecast.getList().get(0).getWeatherArray().get(0).getDescription()+ "\n"
-                    +"First Forecast Max Temperature: " + threeHourForecast.getList().get(0).getMain().getTempMax()+"\n"
-                    +"First Forecast Wind Speed: " + threeHourForecast.getList().get(0).getWind().getSpeed() + "\n";
+            @Override
+            public void onSuccess(ThreeHourForecast threeHourForecast) {
+                handleNewForecast(Forecast.FromHoursForecast(threeHourForecast));
+            }
 
-            setWeatherOnUi(weatherText);
-        }
+            @Override
+            public void onFailure(Throwable throwable) {
+                doOnWeatherFailure(throwable);
+            }
+        });
+    }
 
-        @Override
-        public void onFailure(Throwable throwable) {
-            doOnWeatherFailure(throwable);
-        }
-    });
+    private void handleNewForecast(Forecast forecast) {
+        setWeatherOnUi(forecast);
+        dbForecastHelper.saveForecast(forecast);
     }
 
     private void getCurrentWeather(String city) {
         weatherHelper.getCurrentWeatherByCityName(city, new CurrentWeatherCallback() {
             @Override
             public void onSuccess(CurrentWeather currentWeather) {
-                String weatherText = "Coordinates: " + currentWeather.getCoord().getLat() + ", "+currentWeather.getCoord().getLon() +"\n"
-                        +"Weather Description: " + currentWeather.getWeather().get(0).getDescription() + "\n"
-                        +"Temperature: " + currentWeather.getMain().getTempMax()+"\n"
-                        +"Wind Speed: " + currentWeather.getWind().getSpeed() + "\n"
-                        +"City, Country: " + currentWeather.getName() + ", " + currentWeather.getSys().getCountry();
-
-                setWeatherOnUi(weatherText);
+                handleNewForecast(Forecast.FromCurrentWeather(currentWeather));
             }
 
             @Override
@@ -131,11 +146,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doOnWeatherFailure(Throwable throwable) {
-        ((TextView)findViewById(R.id.text)).setText(throwable.getMessage());
+        ((TextView) findViewById(R.id.text)).setText(throwable.getMessage());
     }
 
-    private void setWeatherOnUi(String weatherText) {
-        ((TextView)findViewById(R.id.text)).setText(weatherText);
+    private void setWeatherOnUi(Forecast f) {
+        ((TextView) findViewById(R.id.text_city)).setText(f.city);
+        ((TextView) findViewById(R.id.text_country)).setText(f.country);
+        ((TextView) findViewById(R.id.text_wind)).setText(f.windSpeed);
+        ((TextView) findViewById(R.id.text_temp)).setText(f.temperature);
+        ((TextView) findViewById(R.id.text_description)).setText(f.description);
     }
 
     public void goWeather(View view) {
@@ -148,5 +167,6 @@ public class MainActivity extends AppCompatActivity {
         Hourly,
         Daily
     }
+
 
 }
